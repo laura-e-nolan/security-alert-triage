@@ -2,16 +2,34 @@ package com.lauranolan.securityalerttriage.model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Column;
 
+@Entity
 public class SecurityEvent {
+    @Column(name = "username")
     private String user;
     private String sourceIp;
     private String device;
     private String resource;
+
+    @Enumerated(EnumType.STRING)
     private EventType eventType;
+
+    @Enumerated(EnumType.STRING)
     private EventOutcome outcome;
+
     private LocalDateTime timestamp;
+
+    @Id
     private UUID id;
+
+    protected SecurityEvent() {
+    }
+
 
     public SecurityEvent(
             LocalDateTime timestamp,
