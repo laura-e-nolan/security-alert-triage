@@ -79,6 +79,14 @@ public class DetectionEngineTest {
                 AlertType.REPEATED_FAILED_LOGIN,
                 result.get().getAlertType()
         );
+
+        assertTrue(
+                result.get().getSourceIps().contains("10.20.5.17")
+        );
+
+        assertTrue(
+                result.get().getDevices().contains("PHY-LT-04")
+        );
     }
 
     @Test
@@ -122,4 +130,90 @@ public class DetectionEngineTest {
 
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void doesCreateAlertForDifferentIpsAndDevices() {
+
+        SecurityEvent event1 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 16, 0),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.17",
+                "PHY-LT-04",
+                null,
+                EventOutcome.FAILURE
+        );
+
+        SecurityEvent event2 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 16, 1),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.44",
+                "UNKNOWN-LT-02",
+                null,
+                EventOutcome.FAILURE
+        );
+
+        SecurityEvent event3 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 16, 3),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.17",
+                "PHY-LT-04",
+                null,
+                EventOutcome.FAILURE
+        );
+
+        SecurityEvent event4 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 16, 4),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.44",
+                "UNKNOWN-LT-02",
+                null,
+                EventOutcome.FAILURE
+        );
+
+        securityEventRepository.save(event1);
+        securityEventRepository.save(event2);
+        securityEventRepository.save(event3);
+        securityEventRepository.save(event4);
+
+        Optional<Alert> result = detectionEngine.evaluate(event4);
+
+        assertTrue(result.isPresent());
+
+        assertEquals(
+                AlertType.REPEATED_FAILED_LOGIN,
+                result.get().getAlertType()
+        );
+
+        assertTrue(
+                result.get().getSourceIps().contains("10.20.5.17")
+        );
+
+        assertTrue(
+                result.get().getSourceIps().contains("10.20.5.44")
+        );
+
+        assertTrue(
+                result.get().getDevices().contains("PHY-LT-04")
+        );
+
+        assertTrue(
+                result.get().getDevices().contains("UNKNOWN-LT-02")
+        );
+
+        assertEquals(
+                2,
+                result.get().getSourceIps().size()
+        );
+
+        assertEquals(
+                2,
+                result.get().getDevices().size()
+        );
+    }
+
+
 }

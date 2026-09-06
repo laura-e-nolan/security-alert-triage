@@ -16,6 +16,7 @@ public class SecurityEvent {
     private String device;
     private String resource;
 
+
     @Enumerated(EnumType.STRING)
     private EventType eventType;
 
