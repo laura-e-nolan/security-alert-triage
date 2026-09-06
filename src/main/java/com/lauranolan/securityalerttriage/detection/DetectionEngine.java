@@ -1,18 +1,15 @@
 package com.lauranolan.securityalerttriage.detection;
 
+import com.lauranolan.securityalerttriage.model.*;
 import org.springframework.stereotype.Component;
 import com.lauranolan.securityalerttriage.repository.SecurityEventRepository;
-import com.lauranolan.securityalerttriage.model.Alert;
-import com.lauranolan.securityalerttriage.model.EventOutcome;
-import com.lauranolan.securityalerttriage.model.EventType;
-import com.lauranolan.securityalerttriage.model.SecurityEvent;
-import com.lauranolan.securityalerttriage.model.AlertType;
 
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import java.time.LocalTime;
 @Component
 
 public class DetectionEngine {
@@ -56,7 +53,23 @@ public class DetectionEngine {
             devices.add(failedLogin.getDevice());
         }
 
+
         if (failedLoginCount >= 4){
+            LocalTime eventTime = event.getTimestamp().toLocalTime();
+            LocalTime expectedStart = LocalTime.of(7, 0);
+            LocalTime expectedEnd = LocalTime.of(20, 0);
+
+            boolean outsideExpectedHours =
+                    eventTime.isBefore(expectedStart) || eventTime.isAfter(expectedEnd);
+
+            AlertSeverity alertSeverity;
+            if (sourceIps.size()> 1 || devices.size() > 1 || outsideExpectedHours) {
+                alertSeverity = AlertSeverity.HIGH;
+            }
+            else{
+                alertSeverity = AlertSeverity.MEDIUM;
+            }
+
             return Optional.of(
             new Alert(
                 event.getUser(),
@@ -64,7 +77,8 @@ public class DetectionEngine {
                 failedLoginCount + " failed login attempts within 5 minutes",
                 event.getTimestamp(),
                     sourceIps,
-                    devices
+                    devices,
+                    alertSeverity
             )
            );
 

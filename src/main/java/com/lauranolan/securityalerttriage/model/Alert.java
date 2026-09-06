@@ -10,6 +10,8 @@ public class Alert {
     private LocalDateTime timestamp;
     private Set<String> sourceIps;
     private Set<String> devices;
+    private AlertSeverity alertSeverity;
+
 
     public Alert(
             String user,
@@ -17,7 +19,8 @@ public class Alert {
             String reason,
             LocalDateTime timestamp,
             Set<String> sourceIp,
-            Set<String> device
+            Set<String> device,
+            AlertSeverity alertSeverity
     ) {
         this.user = user;
         this.alertType = alertType;
@@ -25,6 +28,7 @@ public class Alert {
         this.timestamp = timestamp;
         this.sourceIps = sourceIp;
         this.devices = device;
+        this.alertSeverity = alertSeverity;
     }
 
     public String getUser() {
@@ -49,5 +53,8 @@ public class Alert {
 
     public Set<String> getDevices(){
         return devices;
+    }
+    public AlertSeverity getAlertSeverity(){
+        return alertSeverity;
     }
 }

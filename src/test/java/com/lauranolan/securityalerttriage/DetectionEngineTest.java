@@ -15,6 +15,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.lauranolan.securityalerttriage.model.AlertType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.lauranolan.securityalerttriage.model.AlertSeverity;
 
 @SpringBootTest
 @Transactional
@@ -87,6 +88,12 @@ public class DetectionEngineTest {
         assertTrue(
                 result.get().getDevices().contains("PHY-LT-04")
         );
+
+        assertEquals(
+            AlertSeverity.MEDIUM,
+                result.get().getAlertSeverity()
+        );
+
     }
 
     @Test
@@ -213,7 +220,65 @@ public class DetectionEngineTest {
                 2,
                 result.get().getDevices().size()
         );
+        assertEquals(
+                AlertSeverity.HIGH,
+                result.get().getAlertSeverity()
+        );
+    }
+    @Test
+    void doesCreateAlertForOutsideExpectedHours(){
+        SecurityEvent event1 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 2, 0),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.17",
+                "PHY-LT-04",
+                null,
+                EventOutcome.FAILURE
+        );
+        SecurityEvent event2 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 2, 1),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.17",
+                "PHY-LT-04",
+                null,
+                EventOutcome.FAILURE
+        );
+        SecurityEvent event3 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 2, 3),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.17",
+                "PHY-LT-04",
+                null,
+                EventOutcome.FAILURE
+        );
+        SecurityEvent event4 = new SecurityEvent(
+                LocalDateTime.of(2026, 9, 5, 2, 4),
+                "Sheldon",
+                EventType.LOGIN,
+                "10.20.5.17",
+                "PHY-LT-04",
+                null,
+                EventOutcome.FAILURE
+        );
+
+        securityEventRepository.save(event1);
+        securityEventRepository.save(event2);
+        securityEventRepository.save(event3);
+        securityEventRepository.save(event4);
+
+        Optional<Alert> result = detectionEngine.evaluate(event4);
+
+        assertTrue(result.isPresent());
+
+        assertEquals(
+                AlertSeverity.HIGH,
+                result.get().getAlertSeverity()
+        );
     }
 
 
 }
+
