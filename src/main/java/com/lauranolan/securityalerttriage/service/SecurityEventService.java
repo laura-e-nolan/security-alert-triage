@@ -4,6 +4,9 @@ import com.lauranolan.securityalerttriage.detection.DetectionEngine;
 import com.lauranolan.securityalerttriage.model.SecurityEvent;
 import com.lauranolan.securityalerttriage.repository.SecurityEventRepository;
 import org.springframework.stereotype.Service;
+import com.lauranolan.securityalerttriage.model.Alert;
+import com.lauranolan.securityalerttriage.model.EventProcessingResult;
+import java.util.Optional;
 
 @Service
 public class SecurityEventService {
@@ -19,11 +22,10 @@ public class SecurityEventService {
         this.detectionEngine = detectionEngine;
     }
 
-    public SecurityEvent processEvent(SecurityEvent event) {
+    public EventProcessingResult processEvent(SecurityEvent event) {
         SecurityEvent savedEvent = securityEventRepository.save(event);
 
-        detectionEngine.evaluate(savedEvent);
-
-        return savedEvent;
+        Optional<Alert> alert = detectionEngine.evaluate(savedEvent);
+        return new EventProcessingResult(savedEvent, alert);
     }
 }

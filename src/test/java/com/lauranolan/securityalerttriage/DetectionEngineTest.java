@@ -94,6 +94,11 @@ public class DetectionEngineTest {
                 result.get().getAlertSeverity()
         );
 
+        assertEquals(
+                "4 failed login attempts within 5 minutes",
+                result.get().getReason()
+        );
+
     }
 
     @Test
@@ -223,6 +228,10 @@ public class DetectionEngineTest {
         assertEquals(
                 AlertSeverity.HIGH,
                 result.get().getAlertSeverity()
+        );
+        assertEquals(
+                "4 failed login attempts within 5 minutes; multiple source IPs detected; multiple devices detected",
+                result.get().getReason()
         );
     }
     @Test

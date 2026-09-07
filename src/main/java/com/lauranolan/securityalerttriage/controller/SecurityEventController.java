@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.lauranolan.securityalerttriage.model.EventProcessingResult;
 
 @RestController
 @RequestMapping("/api/events")
@@ -18,7 +19,7 @@ public class SecurityEventController {
     }
 
     @PostMapping
-    public SecurityEvent createEvent(@RequestBody SecurityEvent event) {
+    public EventProcessingResult createEvent(@RequestBody SecurityEvent event) {
         return securityEventService.processEvent(event);
     }
 }

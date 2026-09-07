@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Transactional
 public class SecurityEventControllerTest {
+
     @Autowired
     private SecurityEventController securityEventController;
 
@@ -26,6 +27,7 @@ public class SecurityEventControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(securityEventController).build();
     }
+
     @Test
     void contextLoads() {
     }
@@ -48,9 +50,176 @@ public class SecurityEventControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user").value("Sheldon"))
-                .andExpect(jsonPath("$.eventType").value("LOGIN"))
-                .andExpect(jsonPath("$.outcome").value("FAILURE"))
-                .andExpect(jsonPath("$.id").isNotEmpty());
+                .andExpect(jsonPath("$.event.user").value("Sheldon"))
+                .andExpect(jsonPath("$.event.eventType").value("LOGIN"))
+                .andExpect(jsonPath("$.event.outcome").value("FAILURE"))
+                .andExpect(jsonPath("$.event.id").isNotEmpty())
+                .andExpect(jsonPath("$.alert").isEmpty());
+    }
+
+    @Test
+    void returnsAlertAfterFourFailedLogins() throws Exception {
+
+        String event1Json = """
+            {
+              "timestamp": "2026-09-05T14:00:00",
+              "user": "Sheldon",
+              "eventType": "LOGIN",
+              "sourceIp": "10.20.5.17",
+              "device": "PHY-LT-04",
+              "resource": null,
+              "outcome": "FAILURE"
+            }
+            """;
+
+        String event2Json = """
+    {
+      "timestamp": "2026-09-05T14:01:00",
+      "user": "Sheldon",
+      "eventType": "LOGIN",
+      "sourceIp": "10.20.5.17",
+      "device": "PHY-LT-04",
+      "resource": null,
+      "outcome": "FAILURE"
+    }
+    """;
+
+        String event3Json = """
+    {
+      "timestamp": "2026-09-05T14:03:00",
+      "user": "Sheldon",
+      "eventType": "LOGIN",
+      "sourceIp": "10.20.5.17",
+      "device": "PHY-LT-04",
+      "resource": null,
+      "outcome": "FAILURE"
+    }
+    """;
+
+        String event4Json = """
+    {
+      "timestamp": "2026-09-05T14:04:00",
+      "user": "Sheldon",
+      "eventType": "LOGIN",
+      "sourceIp": "10.20.5.17",
+      "device": "PHY-LT-04",
+      "resource": null,
+      "outcome": "FAILURE"
+    }
+    """;
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event1Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.event.user").value("Sheldon"))
+                .andExpect(jsonPath("$.event.eventType").value("LOGIN"))
+                .andExpect(jsonPath("$.event.outcome").value("FAILURE"))
+                .andExpect(jsonPath("$.event.id").isNotEmpty())
+                .andExpect(jsonPath("$.alert").isEmpty());
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event2Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alert").isEmpty());
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event3Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alert").isEmpty());
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event4Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alert").isNotEmpty())
+                .andExpect(jsonPath("$.alert.alertType").value("REPEATED_FAILED_LOGIN"))
+                .andExpect(jsonPath("$.alert.alertSeverity").value("MEDIUM"))
+                .andExpect(jsonPath("$.alert.reason")
+                        .value("4 failed login attempts within 5 minutes"));
+    }
+
+    @Test
+    void returnsHighAlertForMultipleIpsAndDevices() throws Exception {
+
+        String event1Json = """
+        {
+          "timestamp": "2026-09-05T16:00:00",
+          "user": "Sheldon",
+          "eventType": "LOGIN",
+          "sourceIp": "10.20.5.17",
+          "device": "PHY-LT-04",
+          "resource": null,
+          "outcome": "FAILURE"
+        }
+        """;
+
+        String event2Json = """
+        {
+          "timestamp": "2026-09-05T16:01:00",
+          "user": "Sheldon",
+          "eventType": "LOGIN",
+          "sourceIp": "10.20.5.17",
+          "device": "PHY-LT-04",
+          "resource": null,
+          "outcome": "FAILURE"
+        }
+        """;
+
+        String event3Json = """
+        {
+          "timestamp": "2026-09-05T16:03:00",
+          "user": "Sheldon",
+          "eventType": "LOGIN",
+          "sourceIp": "10.20.5.17",
+          "device": "PHY-LT-04",
+          "resource": null,
+          "outcome": "FAILURE"
+        }
+        """;
+
+        String event4Json = """
+        {
+          "timestamp": "2026-09-05T16:04:00",
+          "user": "Sheldon",
+          "eventType": "LOGIN",
+          "sourceIp": "10.20.5.44",
+          "device": "UNKNOWN-LT-02",
+          "resource": null,
+          "outcome": "FAILURE"
+        }
+        """;
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event1Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alert").isEmpty());
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event2Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alert").isEmpty());
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event3Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alert").isEmpty());
+
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(event4Json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alert").isNotEmpty())
+                .andExpect(jsonPath("$.alert.alertType")
+                        .value("REPEATED_FAILED_LOGIN"))
+                .andExpect(jsonPath("$.alert.alertSeverity")
+                        .value("HIGH"))
+                .andExpect(jsonPath("$.alert.reason")
+                        .value("4 failed login attempts within 5 minutes; multiple source IPs detected; multiple devices detected"));
     }
 }

@@ -70,17 +70,33 @@ public class DetectionEngine {
                 alertSeverity = AlertSeverity.MEDIUM;
             }
 
+            String reason = failedLoginCount + " failed login attempts within 5 minutes";
+
+            if (sourceIps.size() > 1) {
+                reason += "; multiple source IPs detected";
+            }
+
+            if (devices.size() > 1) {
+                reason += "; multiple devices detected";
+            }
+
+            if (outsideExpectedHours) {
+                reason += "; activity occurred outside expected access hours";
+            }
+
+
             return Optional.of(
             new Alert(
                 event.getUser(),
                 AlertType.REPEATED_FAILED_LOGIN,
-                failedLoginCount + " failed login attempts within 5 minutes",
+                    reason,
                 event.getTimestamp(),
                     sourceIps,
                     devices,
                     alertSeverity
             )
            );
+
 
         }
 
