@@ -66,6 +66,8 @@ public class SecurityEventControllerTest {
     @Test
     void returnsAlertAfterFourFailedLogins() throws Exception {
 
+        long alertCountBefore = alertRepository.count();
+
         String event1Json = """
             {
               "timestamp": "2026-09-05T14:00:00",
@@ -146,7 +148,7 @@ public class SecurityEventControllerTest {
                 .andExpect(jsonPath("$.alert.reason")
                         .value("4 failed login attempts within 5 minutes"));
 
-        assertEquals(1, alertRepository.count());
+        assertEquals(alertCountBefore + 1, alertRepository.count());
     }
 
     @Test
