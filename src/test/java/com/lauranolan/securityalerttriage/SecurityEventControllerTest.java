@@ -13,6 +13,9 @@ import org.springframework.http.MediaType;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.lauranolan.securityalerttriage.repository.AlertRepository;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Transactional
@@ -20,6 +23,9 @@ public class SecurityEventControllerTest {
 
     @Autowired
     private SecurityEventController securityEventController;
+
+    @Autowired
+    private AlertRepository alertRepository;
 
     private MockMvc mockMvc;
 
@@ -139,6 +145,8 @@ public class SecurityEventControllerTest {
                 .andExpect(jsonPath("$.alert.alertSeverity").value("MEDIUM"))
                 .andExpect(jsonPath("$.alert.reason")
                         .value("4 failed login attempts within 5 minutes"));
+
+        assertEquals(1, alertRepository.count());
     }
 
     @Test
