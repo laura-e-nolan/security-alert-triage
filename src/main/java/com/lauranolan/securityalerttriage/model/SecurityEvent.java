@@ -7,8 +7,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Column;
+import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 
 @Entity
+@Table(
+        name = "security_event",
+        indexes = {
+                @Index(
+                        name = "idx_security_event_detection",
+                        columnList = "username, event_type, outcome, timestamp"
+                )
+        }
+)
+
 public class SecurityEvent {
     @Column(name = "username")
     private String user;

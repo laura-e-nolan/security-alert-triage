@@ -28,14 +28,6 @@ public class DetectionEngine {
         LocalDateTime windowEnd = event.getTimestamp();
 
 
-        long failedLoginCount =
-                securityEventRepository.countByUserAndEventTypeAndOutcomeAndTimestampBetween(
-                        event.getUser(),
-                        EventType.LOGIN,
-                        EventOutcome.FAILURE,
-                        windowStart,
-                        windowEnd
-                );
 
         List<SecurityEvent> failedLogins =
                 securityEventRepository.findByUserAndEventTypeAndOutcomeAndTimestampBetween(
@@ -45,6 +37,8 @@ public class DetectionEngine {
                         windowStart,
                         windowEnd
                 );
+
+        long failedLoginCount = failedLogins.size();
         Set<String> sourceIps = new HashSet<>();
         Set<String> devices = new HashSet<>();
 
